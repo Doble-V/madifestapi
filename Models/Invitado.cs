@@ -1,35 +1,38 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using madi_fest_api.Models;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace madi_fest_api.Models
+[Table("MF_GUESTS")]
+public class Invitado
 {
+    [Key]
+    [Column("ID")]
+    public int Id { get; set; }
 
-    [Table("MF_GUESTS")]
-    public class Invitado
-    {
-        [Key]
-        [Column("ID")]
-        public int Id { get; set; }
+    [Column("FEST_ID")]
+    public int FestId { get; set; }
 
-        [Column("NAME")]
-        public string Nombre { get; set; } = null!;
+    [Column("NAME")] // Coincide con [NAME] en SQL
+    public string Name { get; set; } = null!;
 
-        [Column("MESSAGE")]
-        public string? Mensaje { get; set; }
+    [Column("LAST_NAME")] // ¡ESTO CORRIGE EL ERROR DE LastName!
+    public string LastName { get; set; } = null!;
 
-        [Column("CONFIRMED")]
-        public bool Confirmado { get; set; }
+    [Column("MESSAGE")]
+    public string? Message { get; set; }
 
-        [Column("DATE_REGISTER")]
-        public DateTime? FechaRegistro { get; set; }
+    [Column("CONFIRMED_COMPANIONS")] // ¡ESTO CORRIGE EL ERROR DE ConfirmedCompanions!
+    public bool? ConfirmedCompanions { get; set; }
 
-        [Column("FEST_ID")]
-        public int FestId { get; set; }
+    [Column("CONFIRMED")]
+    public bool Confirmed { get; set; } = true;
 
-        [ForeignKey("FestId")]
-        public Fest Fest { get; set; } = null!;
+    [Column("DATE_REGISTER")] // ¡ESTO CORRIGE EL ERROR DE DateRegister!
+    public DateTime DateRegister { get; set; } = DateTime.Now;
 
-        public List<Acompanante> Acompanantes { get; set; } = new();
-    }
+    // Relaciones
+    [ForeignKey("FestId")]
+    public virtual Fest Fest { get; set; } = null!;
 
+    public List<Acompanante> Acompanantes { get; set; } = new();
 }

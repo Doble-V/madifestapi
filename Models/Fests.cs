@@ -11,11 +11,14 @@ namespace madi_fest_api.Models
         public int Id { get; set; }
 
         [Column("NAME")]
-        public string Nombre { get; set; } = null!;
+        [Required]
+        [MaxLength(200)]
+        public string Name { get; set; } = null!; // Cambiado de Nombre a Name
 
         [Column("EVENT_DATE")]
-        public DateTime? FechaEvento { get; set; }
+        public DateTime? EventDate { get; set; } // Cambiado de FechaEvento a EventDate
 
-        public List<Invitado> Invitados { get; set; } = new();
+        // Relación con los invitados
+        public List<Invitado> Guests { get; set; } = new(); // Cambiado de Invitados a Guests
     }
 }

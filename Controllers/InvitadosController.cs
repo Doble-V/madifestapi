@@ -2,6 +2,7 @@
 using madi_fest_api.DTOs;
 using madi_fest_api.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace madi_fest_api.Controllers
 {
@@ -21,10 +22,14 @@ namespace madi_fest_api.Controllers
         {
             var invitado = new Invitado
             {
-                Nombre = request.Nombre,
-                Mensaje = request.Mensaje,
                 FestId = request.FestId,
-                Confirmado = true,
+                Name = request.Nombre,
+                LastName = request.Apellido,
+                Message = request.Mensaje,
+                ConfirmedCompanions = request.ConfirmaAcomp, // El bit de la base de datos
+                Confirmed = true,
+                DateRegister = DateTime.Now,
+
                 Acompanantes = request.Acompanantes?
                     .Select(x => new Acompanante { Nombre = x })
                     .ToList() ?? new List<Acompanante>()
@@ -33,11 +38,12 @@ namespace madi_fest_api.Controllers
             _context.Invitados.Add(invitado);
             await _context.SaveChangesAsync();
 
+            // Devolvemos la data procesada
             return Ok(new
             {
                 invitado.Id,
-                invitado.Nombre,
-                invitado.Mensaje,
+                NombreCompleto = $"{invitado.Name} {invitado.LastName}",
+                invitado.ConfirmedCompanions,
                 Acompanantes = invitado.Acompanantes.Select(a => a.Nombre)
             });
         }
@@ -49,8 +55,9 @@ namespace madi_fest_api.Controllers
                 .Where(i => i.FestId == festId)
                 .Select(i => new
                 {
-                    i.Nombre,
-                    i.Mensaje,
+                    // Combinamos Nombre y Apellido para la vista rápida
+                    NombreCompleto = $"{i.Name} {i.LastName}",
+                    i.Message,
                     TotalPersonas = 1 + i.Acompanantes.Count
                 })
                 .ToList();
@@ -62,12 +69,14 @@ namespace madi_fest_api.Controllers
         public IActionResult Reporte(int festId)
         {
             var data = _context.Invitados
+                .Include(i => i.Fest) // Ahora i.Fest ya existe en el modelo
                 .Where(i => i.FestId == festId)
                 .Select(i => new
                 {
-                    Fiesta = i.Fest.Nombre,
-                    Invitado = i.Nombre,
-                    Mensaje = i.Mensaje,
+                    Fiesta = i.Fest.Name, // Nombre de la fiesta desde la clase Fest
+                    Invitado = $"{i.Name} {i.LastName}",
+                    Mensaje = i.Message,
+                    ConfirmaAcomp = i.ConfirmedCompanions,
                     Acompanantes = i.Acompanantes.Select(a => a.Nombre),
                     Total = 1 + i.Acompanantes.Count
                 })
@@ -79,6 +88,7 @@ namespace madi_fest_api.Controllers
         [HttpGet("resumen/{festId}")]
         public IActionResult Resumen(int festId)
         {
+            // Este método se mantiene casi igual, solo aseguramos que use la nueva estructura
             var total = _context.Invitados
                 .Where(i => i.FestId == festId)
                 .Select(i => 1 + i.Acompanantes.Count)
